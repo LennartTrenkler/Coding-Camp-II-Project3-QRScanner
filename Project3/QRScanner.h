@@ -33,5 +33,6 @@ private:
                     const std::vector<cv::Point>& corners,
                     const std::string& decodedText) const;
 
+    // OpenCV QR code detector
     cv::QRCodeDetector detector;
 };
