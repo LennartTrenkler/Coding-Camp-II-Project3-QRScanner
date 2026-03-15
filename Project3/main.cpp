@@ -1,47 +1,113 @@
 #include "QRScanner.h"
-#include "FileDialog.h"
 
 #include <opencv2/highgui.hpp>
+#include <opencv2/videoio.hpp>
 
 #include <iostream>
 #include <string>
 #include <cstdlib>   // needed for opening browser
 
+QRScanResult scanFromCamera(QRScanner& scanner) {
+    QRScanResult result;
+
+    cv::VideoCapture cap(0);
+
+    if (!cap.isOpened()) {
+        std::cerr << "Could not open camera.\n";
+        return result;
+    }
+
+    std::cout << "\nCamera opened successfully.\n";
+    std::cout << "Press 'q' to quit camera scanning.\n";
+    std::cout << "Hold a QR code in front of the camera.\n\n";
+
+    cv::Mat frame;
+
+    while (true) {
+        cap >> frame;
+
+        if (frame.empty()) {
+            std::cerr << "Failed to capture frame from camera.\n";
+            break;
+        }
+
+        result = scanner.scanFrame(frame);
+
+        cv::imshow("QR Scanner - Camera", result.annotatedImage);
+
+        // If a QR code is detected, stop scanning
+        if (result.qrDetected) {
+            std::cout << "QR code detected.\n";
+            break;
+        }
+
+        char key = (char)cv::waitKey(1);
+
+        if (key == 'q' || key == 'Q') {
+            std::cout << "Camera scanning cancelled by user.\n";
+            break;
+        }
+    }
+
+    cap.release();
+    cv::destroyWindow("QR Scanner - Camera");
+
+    return result;
+}
+
 int main(int argc, char** argv) {
 
     char choice = 'y';
+    char mode;
 
     std::cout << "=====================================\n";
     std::cout << "           QR CODE SCANNER\n";
     std::cout << "=====================================\n";
-    std::cout << "Select an image containing a QR code.\n";
+    std::cout << "Choose whether to scan from an image or from the camera.\n";
     std::cout << "The program will decode and display the result.\n\n";
 
     while (choice == 'y' || choice == 'Y') {
 
-        std::string imagePath;
+        QRScanner scanner;
+        QRScanResult result;
 
-        // Use command line path if provided
-        if (argc >= 2) {
-            imagePath = argv[1];
+        std::cout << "Choose input mode:\n";
+        std::cout << "1 = Image file\n";
+        std::cout << "2 = Camera\n";
+        std::cout << "Your choice: ";
+        std::cin >> mode;
+
+        if (mode == '1') {
+            std::string imagePath;
+
+            if (argc >= 2) {
+                imagePath = argv[1];
+            }
+            else {
+                imagePath = pickImageFile();
+            }
+
+            if (imagePath.empty()) {
+                std::cout << "No image selected.\n";
+                return 0;
+            }
+
+            std::cout << "\nProcessing image...\n";
+            result = scanner.scanImage(imagePath);
+
+            if (!result.imageLoaded) {
+                std::cerr << "Could not open image: " << imagePath << '\n';
+                return 1;
+            }
+        }
+        else if (mode == '2') {
+            std::cout << "\nStarting camera scanner...\n";
+            result = scanFromCamera(scanner);
         }
         else {
-            imagePath = pickImageFile();
-        }
-
-        if (imagePath.empty()) {
-            std::cout << "No image selected.\n";
+            std::cout << "Invalid choice.\n";
             return 0;
         }
-
-        std::cout << "\nProcessing image...\n";
-
-        QRScanner scanner;
-        QRScanResult result = scanner.scanImage(imagePath);
-
-        if (!result.imageLoaded) {
-            std::cerr << "Could not open image: " << imagePath << '\n';
-            return 1;
         }
 
         std::cout << "\n=====================================\n";
@@ -64,7 +130,7 @@ int main(int argc, char** argv) {
 
                 if (openLink == 'y' || openLink == 'Y') {
 
-                    std::string command = "start " + result.decodedText;
+                    std::string command = "open " + result.decodedText;
                     system(command.c_str());
 
                     std::cout << "Opening link in browser...\n";
