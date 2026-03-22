@@ -13,10 +13,21 @@ bool isUrl(const std::string& text) {
     return text.rfind("http://", 0) == 0 || text.rfind("https://", 0) == 0;
 }
 
-// Opens a URL in the default browser on Windows
-void openUrlInBrowser(const std::string& url) {
+// Opens a URL in the default browser for the current platform
+bool openUrlInBrowser(const std::string& url) {
+#ifdef _WIN32
     std::string command = "start \"\" \"" + url + "\"";
-    system(command.c_str());
+    return std::system(command.c_str()) == 0;
+#elif defined(__APPLE__)
+    std::string command = "open \"" + url + "\"";
+    return std::system(command.c_str()) == 0;
+#elif defined(__linux__)
+    std::string command = "xdg-open \"" + url + "\"";
+    return std::system(command.c_str()) == 0;
+#else
+    (void)url;
+    return false;
+#endif
 }
 
 // Scans frames from the default camera until a QR code is found or the user quits
@@ -158,8 +169,12 @@ int main(int argc, char** argv) {
                 std::cin >> openLink;
 
                 if (openLink == 'y' || openLink == 'Y') {
-                    openUrlInBrowser(result.decodedText);
-                    std::cout << "Opening link in browser...\n";
+                    if (openUrlInBrowser(result.decodedText)) {
+                        std::cout << "Opening link in browser...\n";
+                    }
+                    else {
+                        std::cout << "Could not open the link on this system.\n";
+                    }
                 }
             }
             else {
