@@ -109,8 +109,7 @@ int main(int argc, char** argv) {
             if (argc >= 2 && !usedCommandLinePath) {
                 imagePath = argv[1];
                 usedCommandLinePath = true;
-            }
-            else {
+            } else {
                 imagePath = pickImageFile();
             }
 
@@ -171,8 +170,7 @@ int main(int argc, char** argv) {
                 if (openLink == 'y' || openLink == 'Y') {
                     if (openUrlInBrowser(result.decodedText)) {
                         std::cout << "Opening link in browser...\n";
-                    }
-                    else {
+                    } else {
                         std::cout << "Could not open the link on this system.\n";
                     }
                 }
@@ -204,3 +202,5 @@ int main(int argc, char** argv) {
 
     return 0;
 }
+
+
