@@ -2,6 +2,7 @@
 
 #include <string>
 
-// Opens a Windows file picker and returns the selected image path
-// Returns an empty string if the dialog is cancelled or fails
+// Opens image selection for the current platform
+// Windows uses a native file dialog
+// Other platforms use a console path prompt for now
 std::string pickImageFile();

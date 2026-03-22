@@ -1,9 +1,14 @@
 #include "FileDialog.h"
 
+#ifdef _WIN32
 #include <windows.h>
 #include <shobjidl.h>
+#endif
 
+#include <iostream>
 #include <string>
+
+#ifdef _WIN32
 
 // Converts a UTF-16 Windows string into UTF-8 for OpenCV
 static std::string wideToUtf8(const std::wstring& wideText) {
@@ -106,3 +111,17 @@ std::string pickImageFile() {
     CoUninitialize();
     return selectedPath;
 }
+
+#else
+
+std::string pickImageFile() {
+    std::string selectedPath;
+
+    // Use a simple path prompt on non-Windows systems for now
+    std::cout << "Enter the full path to the image file: ";
+    std::getline(std::cin >> std::ws, selectedPath);
+
+    return selectedPath;
+}
+
+#endif
