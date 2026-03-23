@@ -41,6 +41,9 @@ QRScanResult scanFromCamera(QRScanner& scanner) {
         return result;
     }
 
+    cv::namedWindow("QR Scanner - Camera", cv::WINDOW_NORMAL);
+    cv::resizeWindow("QR Scanner - Camera", 900, 700);
+
     std::cout << "\nCamera opened successfully.\n";
     std::cout << "Press 'q' to quit camera scanning.\n";
     std::cout << "Hold a QR code in front of the camera.\n\n";
@@ -190,6 +193,8 @@ int main(int argc, char** argv) {
 
         // Show the annotated result if available
         if (!result.annotatedImage.empty()) {
+            cv::namedWindow("QR Scanner", cv::WINDOW_NORMAL);
+            cv::resizeWindow("QR Scanner", 900, 700);
             cv::imshow("QR Scanner", result.annotatedImage);
             cv::waitKey(0);
             cv::destroyAllWindows();
